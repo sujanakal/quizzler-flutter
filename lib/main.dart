@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'quizzbrain.dart';
+import 'quizEndAlert.dart';
 
 void main() => runApp(Quizzler());
 
@@ -7,7 +9,7 @@ class Quizzler extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: Colors.grey[900],
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -24,6 +26,29 @@ class QuizPage extends StatefulWidget {
   _QuizPageState createState() => _QuizPageState();
 }
 
+List<Icon> correctAnswerIcon = [];
+QuizzBrain quizzBrain = new QuizzBrain();
+bool userAnswerIs;
+bool quizEnded = false;
+
+void checkAnswer(answer) {
+  if (quizzBrain.checkCorrectAnswer(answer)) {
+    correctAnswerIcon.add(
+      Icon(
+        Icons.check,
+        color: Colors.green,
+      ),
+    );
+  } else {
+    correctAnswerIcon.add(
+      Icon(
+        Icons.clear,
+        color: Colors.red,
+      ),
+    );
+  }
+}
+
 class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
@@ -37,9 +62,10 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                showQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontFamily: 'New Tegomin',
                   fontSize: 25.0,
                   color: Colors.white,
                 ),
@@ -50,17 +76,29 @@ class _QuizPageState extends State<QuizPage> {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(15.0),
-            child: FlatButton(
-              textColor: Colors.white,
-              color: Colors.green,
+            child: TextButton(
               child: Text(
                 'True',
                 style: TextStyle(
-                  color: Colors.white,
+                  fontFamily: 'Comfortaa',
                   fontSize: 20.0,
+                  color: Colors.white,
                 ),
               ),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.teal[500]),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50.0),
+                )),
+              ),
               onPressed: () {
+                setState(() {
+                  if (quizEnded) {
+                    showAlert(context);
+                  } else {
+                    checkAnswer(true);
+                  }
+                });
                 //The user picked true.
               },
             ),
@@ -69,29 +107,50 @@ class _QuizPageState extends State<QuizPage> {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(15.0),
-            child: FlatButton(
-              color: Colors.red,
+            child: TextButton(
               child: Text(
                 'False',
                 style: TextStyle(
+                  fontFamily: 'Comfortaa',
                   fontSize: 20.0,
                   color: Colors.white,
                 ),
               ),
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all(Colors.redAccent[400]),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50.0),
+                )),
+              ),
               onPressed: () {
+                setState(() {
+                  if (quizEnded) {
+                    showAlert(context);
+                  } else {
+                    checkAnswer(false);
+                  }
+                });
                 //The user picked false.
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          // Because correctAnswerIcon is a list itself, directly add it's name here
+          children: correctAnswerIcon,
+        ),
       ],
     );
   }
-}
 
-/*
-question1: 'You can lead a cow down stairs but not up stairs.', false,
-question2: 'Approximately one quarter of human bones are in the feet.', true,
-question3: 'A slug\'s blood is green.', true,
-*/
+  String showQuestionText() {
+    String text = quizzBrain.getQuestionText();
+    if (text == '') {
+      quizzBrain.reSetQuiz();
+      correctAnswerIcon = [];
+      quizEnded = true;
+    }
+    return text;
+  }
+}
